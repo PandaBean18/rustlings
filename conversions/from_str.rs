@@ -26,8 +26,6 @@ enum ParsePersonError {
     ParseInt(ParseIntError),
 }
 
-// I AM NOT DONE
-
 // Steps:
 // 1. If the length of the provided string is 0, an error should be returned
 // 2. Split the given string on the commas present in it
@@ -41,6 +39,49 @@ enum ParsePersonError {
 impl FromStr for Person {
     type Err = ParsePersonError;
     fn from_str(s: &str) -> Result<Person, Self::Err> {
+        match s.len() {
+            0 => {
+                Err(ParsePersonError::Empty)
+            }
+            _ => {
+                let split_string: Vec<String> = s.split(",").map(|x| x.to_string()).collect();
+                match split_string.len() {
+                    2 => {
+                        let name: Result<_, _> = split_string[0].parse::<String>(); 
+                        let age: Result<_, _> = split_string[1].parse::<usize>(); 
+                        match name {
+                            Ok(s) => {
+                                match s.len() {
+                                    0 => {
+                                        return Err(ParsePersonError::NoName);
+                                    }
+                                    _ => {
+                                        match age {
+                                            Ok(i) => {
+                                                Ok(Person {
+                                                    name: s.to_string(), 
+                                                    age: i
+                                                })
+                                            }
+                                            Err(e) => {
+                                                Err(ParsePersonError::ParseInt(e))
+                                            }
+                                        }
+                                    }
+                                }
+                            } 
+                            Err(_e) => {
+                                return Err(ParsePersonError::NoName);
+                            }
+                        } 
+
+                    }
+                    _ => {
+                        return Err(ParsePersonError::BadLen);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -60,6 +101,7 @@ mod tests {
     #[test]
     fn good_input() {
         let p = "John,32".parse::<Person>();
+        println!("{:?}", p);
         assert!(p.is_ok());
         let p = p.unwrap();
         assert_eq!(p.name, "John");
